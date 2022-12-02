@@ -1,0 +1,64 @@
+// First, scaffold a new React project
+npx create-react-app lcr-app
+
+// Move into the new project directory
+cd lcr-app
+
+// Install the web3.js library
+npm install web3
+
+// Create a new file for the LCR contract
+touch LCR.sol
+
+// Copy the contract code into the LCR.sol file
+// (replace the code with the contract code from above)
+
+// Import the web3.js library and the LCR contract in App.js
+import React, { useState, useEffect } from "react";
+import web3 from "web3";
+import LCR from "./LCR.sol";
+
+function App() {
+  // Initialize the web3 provider
+  const provider = new web3.providers.HttpProvider(
+    "https://rinkeby.infura.io/v3/YOUR-PROJECT-ID"
+  );
+
+  // Initialize the LCR contract
+  const lcrContract = new web3.eth.Contract(LCR.abi, LCR.address);
+
+  // Set up state variables to track the game state
+  const [players, setPlayers] = useState([]);
+  const [currentPlayer, setCurrentPlayer] = useState();
+  const [centerPot, setCenterPot] = useState();
+  const [chips, setChips] = useState();
+
+  // Use the useEffect hook to call the contract's functions
+  // and update the state variables
+  useEffect(() => {
+    // Call the joinGame function to add the user to the game
+    lcrContract.methods.joinGame().send({ from: web3.eth.defaultAccount });
+
+    // Call the play function to play a turn
+    lcrContract.methods.play("left").send({ from: web3.eth.defaultAccount });
+
+    // Call the contract's public variables to update the state
+    lcrContract.methods.players().call().then(setPlayers);
+    lcrContract.methods.currentPlayer().call().then(setCurrentPlayer);
+    lcrContract.methods.centerPot().call().then(setCenterPot);
+    lcrContract.methods.chips().call().then(setChips);
+  }, []);
+
+  // Render the game state in the UI
+  return (
+    <div>
+      <h1>LCR Game</h1>
+      <p>Players: {players.join(", ")}</p>
+      <p>Current Player: {currentPlayer}</p>
+      <p>Center Pot: {centerPot}</p>
+      <p>Player Chips: {chips[web3.eth.defaultAccount]}</p>
+    </div>
+  );
+}
+
+export default App;
